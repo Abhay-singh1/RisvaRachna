@@ -20,14 +20,14 @@ import mysql from 'mysql'
 
 const app = express()
 const router = express.Router()
-
+app.use(express.json())
 
 //Connecting to mysql 
 var mysqlConnection = mysql.createConnection({
     host:'localhost',
     user:'root',
     password:'Encrypted@098',
-    database:'employeedb'
+    database:'randomuser'
 });
 
 mysqlConnection.connect((err) =>{
@@ -53,16 +53,16 @@ function alphaNumeric(str){
 
 
 
-router.post('/register', (req,res)=>{
+app.post('/register', (req,res)=>{
     console.log('Inside api...')
     try{
-    inputData ={
+    const inputData ={
         username: req.body.username,
         password: req.body.password
     }
 
     if(alphaNumeric(inputData.username)){
-        if(inputData.username>=6 && inputData.username<=12 && inputData.password>=6){
+        if(inputData.username.length>=6 && inputData.username.length<=12 && inputData.password.length>=6){
             var sql='SELECT * FROM users WHERE username =?';
         mysqlConnection.query(sql, [inputData.username] ,function (err, data, fields) {
         if(err) throw err
@@ -95,14 +95,14 @@ catch(err){
  
 //Create the login route
 
-router.post('/login',async(req, res)=>{
+app.post('/login',async(req, res)=>{
     var username = req.body.username;
 
     var password = req.body.password;
 
     if(username && password)
     {
-        query = `
+        const query = `
         SELECT * FROM users
         WHERE username = "${username}"
         `;
@@ -135,8 +135,9 @@ router.post('/login',async(req, res)=>{
 
 //Creating route for fetching order past 7 Days
 
-router.get('/orders', async(req,res)=>{
-    mysqlConnection.query('select * from randomuser.order where createdAt >= NOW() + INTERVAL -7 DAY AND createdAt <  NOW() + INTERVAL  0 DAY ?', (err,rows,fields)=>{
+app.get('/orders', async(req,res)=>{
+    const query ='SELECT * FROM randomuser.order where createdAt >= NOW() - INTERVAL 7 DAY AND createdAt <  NOW() + INTERVAL  0 DAY '
+    mysqlConnection.query(query, (err,rows,fields)=>{
         if(!err){
             console.log(rows);
             res.send(rows)
